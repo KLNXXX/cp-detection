@@ -1,2 +1,3 @@
 # cp-detection
-Lua script to detect copying and pasting in-game
+
+A simple method to detect whenever a player copy and pastes in a text box.
