@@ -1,31 +1,35 @@
---//
+--@Services
+local UserInputService = game:GetService("UserInputService")
+local Players = game:GetService("Players")
 
-local UIS = game:GetService("UserInputService")
-local RS = game:GetService("RunService")
+--@Instances
+local LocalPlayer = Players.LocalPlayer
 
---//
+--@UI Instances
+local CurrentBox = nil
+local OldMessage = ""
 
-local Whitelist = {
-	"WorriedStick"
-}
+--@Settings
+local JumpAmount = 3 -- The number of letters jumped that counts as a "copy and paste"
 
---//
+--@Local Functions
+local function Punish(ChatText) -- Change this function to whatever punishment you like
+	print(LocalPlayer.Name .. " copy and pasted " .. ChatText)
+end
 
-local Chat = game.Players.LocalPlayer:WaitForChild("PlayerGui"):WaitForChild("Chat").Frame.ChatBarParentFrame.Frame.BoxFrame.Frame.ChatBar
-UIS.InputBegan:Connect(function(inp, pro)
-	if not pro or not inp.KeyCode then return end
-	if table.find(Whitelist, game.Players.LocalPlayer.Name) then return end
-	local key = inp.KeyCode.Name
-	if key == "V" then
-		if UIS:IsKeyDown(Enum.KeyCode.LeftControl) or UIS:IsKeyDown(Enum.KeyCode.RightControl) or UIS:IsKeyDown(Enum.KeyCode.LeftMeta) or UIS:IsKeyDown(Enum.KeyCode.RightMeta) then
-			Chat.Text = "[COPY AND PASTE]"
+--@Functions
+UserInputService.TextBoxFocused:Connect(function(TextBox)
+	pcall(function() -- Wrap it in a pcall in case the player clicks on a CoreGui textbox
+		if (TextBox ~= CurrentBox) and (TextBox.Name == "ChatBar") then
+			CurrentBox = TextBox -- Set the current box to this
+			TextBox.FocusLost:Connect(function(EnterPressed)
+				if (EnterPressed) then -- If the player enters their chat message
+					local ChatText = TextBox.Text -- Define the current chat text
+					if (string.len(ChatText) - string.len(OldMessage)) > JumpAmount then -- If the player crosses the jump amount
+						Punish(ChatText) -- Confirmed copying and pasting
+					end
+				end
+			end)
 		end
-	end
-end)
-OldMsg = ""
-Chat.Changed:Connect(function()
-	if string.len(Chat.Text) - string.len(OldMsg) >= 10 then
-		Chat.Text = "[KEYSTROKE SPEED]"
-	end
-	OldMsg = Chat.Text
+	end)
 end)
